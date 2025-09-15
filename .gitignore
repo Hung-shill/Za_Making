@@ -114,3 +114,5 @@ temp/
 
 # AI Model Files
 .claude/
+.docs/
+CLAUDE.md
