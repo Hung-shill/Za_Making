@@ -44,8 +44,8 @@ python main.py continuous --sensor rplidar_sdk --device /dev/ttyUSB0
 python main.py benchmark --count 50
 
 # Different visualization modes
-python main.py single --visualization headless
-python main.py single --visualization opencv
+python main.py --visualization headless single
+python main.py --visualization opencv single
 ```
 
 #### Legacy Compatibility
