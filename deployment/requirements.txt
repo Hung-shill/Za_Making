@@ -1,0 +1,22 @@
+# Core dependencies
+numpy>=2.3.0
+pandas>=2.3.0
+matplotlib>=3.10.0
+
+# System monitoring (Pi deployment)
+psutil>=5.9.0
+
+# Optional hardware support
+# Uncomment for RPLidar hardware integration:
+# rplidar>=0.9.0
+
+# Optional lightweight visualization backends
+# Uncomment for OpenCV support:
+# opencv-python>=4.8.0
+
+# Uncomment for PIL support (usually included with Python):
+# Pillow>=10.0.0
+
+# Optional serial communication
+# Uncomment for custom serial protocols:
+# pyserial>=3.5

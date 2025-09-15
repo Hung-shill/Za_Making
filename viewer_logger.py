@@ -3,18 +3,30 @@ import numpy as np
 import matplotlib.pyplot as plot
 from matplotlib.patches import Circle, FancyArrow, Wedge, Polygon, Rectangle
 import math
+import logging
+
+# Configure logging for autonomous vehicle system
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("lidar_system.log"), logging.StreamHandler()],
+)
+logger = logging.getLogger("RPLidar_C1")
 
 
 """
 x = r * cos(theta), y = r * sin(theta). Formulas for converting polar to Cartesian coordinates.
 have to be in radians for numpy trig functions
 
-Also need to activate the virtual environment in terminal
+Also need to activate the virtual environment in terminal:
 source venv/bin/activate
+
+to deactivate:
+deactivate
 
 """
 # Change this to your CSV filename
-filename = "Test_onRug.csv"
+filename = "data/test_onRug.csv"
 
 
 def symbolic_lidar(ax, x0=0.0, y0=0.0, yaw_deg=0.0, label="Pookie"):
@@ -36,19 +48,6 @@ def symbolic_lidar(ax, x0=0.0, y0=0.0, yaw_deg=0.0, label="Pookie"):
             length_includes_head=True,
         )
     )
-
-    # Optional label near the icon
-    if label:
-        ax.text(
-            x0 + 0.08 * np.cos(yaw),
-            y0 + 0.08 * np.sin(yaw),
-            str(label),
-            fontsize=8,
-            color="red",
-            va="center",
-            ha="left",
-            alpha=0.9,
-        )
 
 
 def draw_lidar_icon(
@@ -186,48 +185,88 @@ def draw_range_rings(ax, rmax=6.0, step=1.0):
 """Load file, skipping header lines that start with #.
 Supports pandas if installed; otherwise falls back to NumPy.
 """
-if pd is not None:
-    df = pd.read_csv(
-        filename,
-        comment="#",
-        sep=r"[,\s]+",
-        names=["angle", "distance_mm", "quality"],
-        engine="python",
-        header=None,
-    )
+logger.info(f"Loading lidar data from {filename}")
 
-    for col in ["angle", "distance_mm", "quality"]:
-        df[col] = pd.to_numeric(df[col], errors="coerce")
-    df = df.dropna(subset=["angle", "distance_mm"])
+try:
+    if pd is not None:
+        df = pd.read_csv(
+            filename,
+            comment="#",
+            sep=r"[,\s]+",
+            names=["angle", "distance_mm", "quality"],
+            engine="python",
+            header=None,
+        )
 
-    # Filter and convert
-    df = df[(df["quality"] > 120) & (df["distance_mm"].between(80, 8000))]
-    qualities = df["quality"].to_numpy(dtype=float)
-    distances_m = (df["distance_mm"].to_numpy(dtype=float)) / 1000.0
-    angles_rad = np.deg2rad(df["angle"].to_numpy(dtype=float))
-else:
-    data = np.genfromtxt(
-        fname=filename,
-        comments="#",
-        dtype=float,
-    )
-    if data.ndim == 1:
-        data = np.atleast_2d(data)
-    if data.shape[1] < 3:
-        raise ValueError("Expected at least 3 columns: angle, distance_mm, quality")
+        for col in ["angle", "distance_mm", "quality"]:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+        df = df.dropna(subset=["angle", "distance_mm"])
 
-    angle = data[:, 0]
-    distance_mm = data[:, 1]
-    quality = data[:, 2]
+        # Check for data quality issues
+        initial_rows = len(df)
+        df = df[(df["quality"] > 120) & (df["distance_mm"].between(80, 8000))]
+        filtered_rows = len(df)
 
-    mask = (quality > 100.0) & (distance_mm > 50.0)
-    angle = angle[mask]
-    distance_mm = distance_mm[mask]
-    quality = quality[mask]
+        if filtered_rows == 0:
+            logger.error(
+                "No valid lidar data after quality filtering - sensor may be malfunctioning"
+            )
+            raise ValueError("No valid lidar data available")
 
-    qualities = quality.astype(float)
-    distances_m = distance_mm.astype(float) / 1000.0
-    angles_rad = np.deg2rad(angle.astype(float))
+        if filtered_rows < initial_rows * 0.5:
+            logger.warning(
+                f"Low quality data: {filtered_rows}/{initial_rows} points passed filter"
+            )
+
+        logger.info(f"Processed {filtered_rows} valid lidar points")
+        qualities = df["quality"].to_numpy(dtype=float)
+        distances_m = (df["distance_mm"].to_numpy(dtype=float)) / 1000.0
+        angles_rad = np.deg2rad(df["angle"].to_numpy(dtype=float))
+    else:
+        data = np.genfromtxt(
+            fname=filename,
+            comments="#",
+            dtype=float,
+        )
+        if data.ndim == 1:
+            data = np.atleast_2d(data)
+        if data.shape[1] < 3:
+            logger.error(f"Invalid CSV format: expected 3 columns, got {data.shape[1]}")
+            raise ValueError("Expected at least 3 columns: angle, distance_mm, quality")
+
+        angle = data[:, 0]
+        distance_mm = data[:, 1]
+        quality = data[:, 2]
+
+        initial_points = len(angle)
+        mask = (quality > 100.0) & (distance_mm > 50.0)
+        angle = angle[mask]
+        distance_mm = distance_mm[mask]
+        quality = quality[mask]
+
+        filtered_points = len(angle)
+        if filtered_points == 0:
+            logger.error(
+                "No valid lidar data after NumPy filtering - sensor issue detected"
+            )
+            raise ValueError("No valid lidar data available")
+
+        if filtered_points < initial_points * 0.5:
+            logger.warning(
+                f"Low quality data: {filtered_points}/{initial_points} points passed filter"
+            )
+
+        logger.info(f"Processed {filtered_points} valid lidar points using NumPy")
+        qualities = quality.astype(float)
+        distances_m = distance_mm.astype(float) / 1000.0
+        angles_rad = np.deg2rad(angle.astype(float))
+
+except FileNotFoundError:
+    logger.error(f"Lidar data file not found: {filename}")
+    raise
+except Exception as e:
+    logger.error(f"Failed to process lidar data: {e}", exc_info=True)
+    raise
 
 # Polar → Cartesian
 xs = distances_m * np.cos(angles_rad)

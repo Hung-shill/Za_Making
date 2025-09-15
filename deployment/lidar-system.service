@@ -1,0 +1,26 @@
+[Unit]
+Description=LIDAR Data Processing System
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/lidar-system
+ExecStart=/home/pi/lidar-system/.venv/bin/python main.py continuous
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Resource limits for Pi
+LimitNOFILE=1024
+MemoryMax=500M
+
+# Environment variables
+Environment=PYTHONUNBUFFERED=1
+Environment=DISPLAY=:0
+
+[Install]
+WantedBy=multi-user.target

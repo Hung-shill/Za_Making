@@ -1,0 +1,116 @@
+# Python Virtual Environment
+.venv/
+venv/
+env/
+
+# Python Cache and Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Generated Files from LIDAR System
+scan.png
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+
+# Log Files
+*.log
+lidar_system.log*
+*.log.*
+
+# Configuration Files (auto-generated)
+lidar_config.json
+*.json.bak
+
+# Temporary Files
+*.tmp
+*.temp
+.cache/
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing and Coverage
+.coverage
+.pytest_cache/
+.tox/
+.nox/
+htmlcov/
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Data Analysis Output (keep source data, ignore processed)
+processed_data/
+output/
+results/
+plots/
+logs/
+temp/
+
+# Raspberry Pi Specific
+# (Uncomment when deploying to Pi)
+# *.service.backup
+# systemd_logs/
+
+# AI Model Files
+.claude/
