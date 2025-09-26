@@ -260,14 +260,14 @@ class ConfigManager:
                 pass
 
             try:
-                from PIL import Image
+                from PIL import Image #virtual environment might have it
                 return VisualizationMode.PIL
             except ImportError:
                 pass
 
             # Fall back to headless matplotlib
             try:
-                import matplotlib
+                import matplotlib #virtual environment might have it
                 return VisualizationMode.HEADLESS
             except ImportError:
                 return VisualizationMode.TEXT_ONLY
@@ -275,7 +275,7 @@ class ConfigManager:
         else:
             # Development platform - prefer full GUI
             try:
-                import matplotlib
+                import matplotlib #virtual environment might have it
                 return VisualizationMode.FULL_GUI
             except ImportError:
                 return VisualizationMode.TEXT_ONLY
